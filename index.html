@@ -28,7 +28,7 @@
             var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 5, -10), scene);
 camera.setTarget(BABYLON.Vector3.Zero()); // Set the camera's target
 camera.attachControl(canvas, true);
-var timerDuration = 1000;
+var timerDuration = 500;
 function toRadians(degrees) {
   return degrees * (Math.PI / 180);
 }
@@ -112,12 +112,14 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
             BABYLON.SceneLoader.ImportMesh("", "https://assets.babylonjs.com/meshes/", "HVGirl.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
   const hero = newMeshes[0];
   animationGroups[0].play(true);
+  hero.scaling = new BABYLON.Vector3(0.3,0.3,0.3);
+  hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
 
   var speed = 0.2;
         button1.onPointerUpObservable.add(function () {
           hero.position.z += speed;
          camera.position.z += speed;
-         hero.rotation = new BABYLON.Vector3(0,toRadians(180), 0);
+         hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
          animationGroups[2].play(true);
          setTimeout(function () {
           animationGroups[2].stop();
@@ -128,7 +130,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
             button.onPointerUpObservable.add(function () {
               hero.position.x += speed;
           camera.position.x += speed;
-          hero.rotation = new BABYLON.Vector3(0,toRadians(-90), 0);
+          hero.rotation = new BABYLON.Vector3(0,toRadians(90), 0);
           animationGroups[2].play(true);
           setTimeout(function () {
             animationGroups[2].stop();
@@ -141,7 +143,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
               hero.position.x -= speed;
           
           camera.position.x -= speed;
-          hero.rotation = new BABYLON.Vector3(0, toRadians(90), 0);
+          hero.rotation = new BABYLON.Vector3(0, toRadians(-90), 0);
           animationGroups[2].play(true);
           setTimeout(function () {
             animationGroups[2].stop();
@@ -153,7 +155,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
               hero.position.z -= speed;
           
           camera.position.z -= speed;
-          hero.rotation = new BABYLON.Vector3(0,toRadians(180), 0);
+          hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
           animationGroups[3].play(true);
           setTimeout(function () {
             animationGroups[3].stop();
