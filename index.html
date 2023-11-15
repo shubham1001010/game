@@ -36,11 +36,17 @@ function toRadians(degrees) {
             var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
             // Create a torus with a material
-            var torus = BABYLON.MeshBuilder.CreateGround("torus", { height:20 , width :20 }, scene);
+            var torus = BABYLON.MeshBuilder.CreateGround("torus", { height:100 , width :100 }, scene);
             torus.position = new BABYLON.Vector3(0, 0, 0);
             var material = new BABYLON.StandardMaterial("torusMaterial", scene);
             torus.material = material;
 
+            BABYLON.SceneLoader.ImportMesh("","","sss.glb",scene, function(newMeshes, particleSystems, skeletons, animationGroups){
+            const house = newMeshes[0];
+            house.scaling = new BABYLON.Vector3(4,4,4);
+            house.position.z += -20;
+            animationGroups[0].play(true);
+          });
 
 
 
@@ -57,7 +63,7 @@ function toRadians(degrees) {
 
 
 
-
+            
             // GUI setup
             var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
             var button = BABYLON.GUI.Button.CreateSimpleButton("button", "C");
@@ -110,12 +116,13 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
             advancedTexture.addControl(button3);
 
             BABYLON.SceneLoader.ImportMesh("", "https://assets.babylonjs.com/meshes/", "HVGirl.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
-  const hero = newMeshes[0];
+  var hero = newMeshes[0];
   animationGroups[0].play(true);
   hero.scaling = new BABYLON.Vector3(0.3,0.3,0.3);
   hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
+  
 
-  var speed = 0.9;
+  var speed = 0.45;
         button1.onPointerDownObservable.add(function () {
           hero.position.z += speed;
          camera.position.z += speed;
@@ -166,6 +173,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
             // Render loop
             engine.runRenderLoop(function () {
+              
                 scene.render();
             });
 
