@@ -35,6 +35,8 @@ function toRadians(degrees) {
             // Light
             var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
+            
+
             // Create a torus with a material
             var torus = BABYLON.MeshBuilder.CreateGround("torus", { height:100 , width :100 }, scene);
             torus.position = new BABYLON.Vector3(0, 0, 0);
@@ -62,8 +64,17 @@ function toRadians(degrees) {
 
 
 
+            var but = BABYLON.GUI.Button.CreateSimpleButton("button", "DEBUG");
+            but.width = "70px";
+            but.height = "50px";
+            but.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+but.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+but.color = "white";
+            but.background = "black"; 
+            but.onPointerDownObservable.add(function () {scene.debugLayer.show();});
 
-            
+
+
             // GUI setup
             var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
             var button = BABYLON.GUI.Button.CreateSimpleButton("button", "C");
@@ -111,6 +122,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
             button3.top=100;
             
             advancedTexture.addControl(button);
+            advancedTexture.addControl(but);
             advancedTexture.addControl(button1);
             advancedTexture.addControl(button2);
             advancedTexture.addControl(button3);
@@ -122,7 +134,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
   hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
   
 
-  var speed = 0.45;
+  var speed = 1.5;
         button1.onPointerDownObservable.add(function () {
           hero.position.z += speed;
          camera.position.z += speed;
@@ -138,6 +150,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
               hero.position.x += speed;
           camera.position.x += speed;
           hero.rotation = new BABYLON.Vector3(0,toRadians(90), 0);
+          camera.rotation = new BABYLON.Vector3(0,toRadians(90), 0);
           animationGroups[2].play(true);
           setTimeout(function () {
             animationGroups[2].stop();
@@ -150,6 +163,7 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
               hero.position.x -= speed;
           
           camera.position.x -= speed;
+          hero.rotation = new BABYLON.Vector3(0, toRadians(-90), 0);
           hero.rotation = new BABYLON.Vector3(0, toRadians(-90), 0);
           animationGroups[2].play(true);
           setTimeout(function () {
