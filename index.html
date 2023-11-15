@@ -28,7 +28,7 @@
             var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 5, -10), scene);
 camera.setTarget(BABYLON.Vector3.Zero()); // Set the camera's target
 camera.attachControl(canvas, true);
-var timerDuration = 500;
+var timerDuration = 1000;
 function toRadians(degrees) {
   return degrees * (Math.PI / 180);
 }
@@ -115,8 +115,8 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
   hero.scaling = new BABYLON.Vector3(0.3,0.3,0.3);
   hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
 
-  var speed = 0.2;
-        button1.onPointerUpObservable.add(function () {
+  var speed = 0.45;
+        button1.onPointerDownObservable.add(function () {
           hero.position.z += speed;
          camera.position.z += speed;
          hero.rotation = new BABYLON.Vector3(0,toRadians(0), 0);
