@@ -148,8 +148,8 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
             button.onPointerUpObservable.add(function () {
               hero.position.x += speed;
-          camera.position.x = hero.position.x - speed ;
-                camera.position.z = hero.position.z;
+         // camera.position.x = hero.position.x - speed ;
+               // camera.position.z = hero.position.z;
           hero.rotation = new BABYLON.Vector3(0,toRadians(90), 0);
           camera.rotation = new BABYLON.Vector3(0,toRadians(90), 0);
           animationGroups[2].play(true);
@@ -162,8 +162,8 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
             button2.onPointerUpObservable.add(function () {
               hero.position.x -= speed;
-          camera.position.z = hero.position.z;
-         camera.position.x = hero.position.x - speed;
+          //camera.position.z = hero.position.z;
+        // camera.position.x = hero.position.x - speed;
           hero.rotation = new BABYLON.Vector3(0, toRadians(-90), 0);
           camera.rotation = new BABYLON.Vector3(0, toRadians(-90), 0);
           animationGroups[2].play(true);
@@ -188,7 +188,8 @@ button.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
             // Render loop
             engine.runRenderLoop(function () {
-              
+              camera.position.x = hero.position.x - (2 * speed );
+                camera.position.z = hero.position.z - (2 * speed );
                 scene.render();
             });
 
