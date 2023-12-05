@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babylon.js Virtual Joystick with Follow Camera</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <style>
+        canvas,body,html {
+    height: 100%;
+    width:100%;
+    margin: 0%;
+    padding: 0%;
+    overflow: hidden;
+}
+        #joystickContainer {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            display: none;
+        }
+
+        #joystickCanvas {
+            border: 2px solid #000;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas" style="width: 100%; height: 100%;"></canvas>
+    <div id="joystickContainer">
+        <canvas id="joystickCanvas" width="100" height="100"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var canvas = document.getElementById("renderCanvas");
+            var engine = new BABYLON.Engine(canvas, true);
+            var scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.53, 0.81, 0.98, 1); // Sky blue color
+
+            // Follow Camera
+            var camera = new BABYLON.FollowCamera("followCamera", new BABYLON.Vector3(0, 10, -30), scene);
+            camera.radius = 10;
+            camera.heightOffset = 5;
+            camera.lockedTarget = new BABYLON.Vector3(0, 0, 0);
+            scene.activeCamera = camera;
+
+            var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+
+            // Virtual Joystick
+            var joystickContainer = document.getElementById("joystickContainer");
+            var joystickCanvas = document.getElementById("joystickCanvas");
+            var joystick = new BABYLON.VirtualJoystick({
+                canvas: joystickCanvas,
+                hideWhenIdle: true,
+                joystickHasMoved: function () { return true; },
+                position: { left: 50, top: 50 },
+                color: "white"
+            });
+
+            // Cube
+            var cube = BABYLON.MeshBuilder.CreateBox("cube", { size: 1 }, scene);
+            cube.position.y = 0.5;
+
+            BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/game/", "shinchan.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
+  var hero = newMeshes[0];
+  animationGroups[0].play(true);
+hero.scaling.x = 20;
+          });
+
+
+
+
+            camera.lockedTarget = cube;
+            // Event listener for joystick input
+            scene.onBeforeRenderObservable.add(function () {
+                if (joystick.pressed) {
+                    var speed = 0.1;
+                    cube.position.x -= joystick.deltaPosition.x * speed;
+                    cube.position.z -= joystick.deltaPosition.y * speed;
+                }
+            });
+
+            // Render loop
+            engine.runRenderLoop(function () {
+                scene.render();
+            });
+
+            // Resize
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+        });
+    </script>
+</body>
+</html>
