@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>THE UNSOLVED GAME</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THIRD PERSON CAMERA AND MOVEMENTS</title>
+    <!-- Babylon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+    <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+    <script src="https://cdn.babylonjs.com/recast.js"></script>
+    <script src="https://cdn.babylonjs.com/ammo.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+    <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+    <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+</head>
+<style>
+    html, body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none; /* prevent browser's default touch actions */
+    }
+</style>
+<body margin="0" padding="0">
+    <canvas id="renderCanvas" height="100%" tabindex="0" width="100%"></canvas>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set up Babylon.js engine
+            var canvas = document.getElementById("renderCanvas");
+
+            var engine = null;
+            var scene = null;
+            var camera = null;
+            var joystick = null;
+
+            var createDefaultEngine = function () {
+                return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, disableWebGL2Support: false });
+            };
+
+            var createScene = function () {
+                // This creates a basic Babylon Scene object (non-mesh)
+                var scene = new BABYLON.Scene(engine);
+              //  scene.clearColor = new BABYLON.Color4(0.93, 0.51, 0.71, 1); // Sky blue color
+
+                scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+
+                // Create a FollowCamera
+                camera = new BABYLON.FollowCamera(
+                    'FollowCamera',
+                    new BABYLON.Vector3(0, 5, -10),
+                    scene
+                );
+                camera.radius = 4;
+                camera.heightOffset = 5;
+                camera.rotationOffset = 0;
+
+                // Attach the camera to the canvas
+                camera.attachControl(canvas, true);
+
+                // Create a light
+                var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+
+                // Create a ground
+                var ground = BABYLON.MeshBuilder.CreateGround('ground', { width: 10, height: 10 }, scene);
+                 ground.physicsImpostor = vrc;
+                 
+                 var vrc = new BABYLON.PhysicsImpostor(
+
+                     ground,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+
+                // Create a cube
+                var cube3 = BABYLON.MeshBuilder.CreateBox('cube3', { size: 100 }, scene);
+                const material3 = new BABYLON.StandardMaterial("CubeMaterial", scene);
+            material3.diffuseTexture = new BABYLON.Texture("https://i0.wp.com/pixahive.com/wp-content/uploads/2021/03/marble-texture-Blue-background-393321-pixahive.jpg?fit=778%2C435&ssl=1", scene);
+
+            cube3.material = material3;
+                
+                var cube = BABYLON.MeshBuilder.CreateSphere('cube', { size: 1 }, scene);
+                cube.position.y = 1;
+                cube.physicsImpostor = new BABYLON.PhysicsImpostor(
+                    cube,
+                    BABYLON.PhysicsImpostor.SphereImpostor,
+                    { mass: 1, restitution: 0.9 },
+                    scene
+                );
+                cube.isvisible = false;
+                 const material2 = new BABYLON.StandardMaterial("sphereMaterial", scene);
+
+            material2.diffuseTexture = new BABYLON.Texture("https://i0.wp.com/pixahive.com/wp-content/uploads/2021/03/marble-texture-Blue-background-393321-pixahive.jpg?fit=778%2C435&ssl=1", scene);
+
+            cube.material = material2;
+
+                // Create a building
+                var cube2 = BABYLON.MeshBuilder.CreateBox('building', { size: 1 }, scene);
+                // building.position.x = 2;
+                // building.position.y = 5;
+                // building.physicsImpostor = new BABYLON.PhysicsImpostor(
+                //     building,
+                //     BABYLON.PhysicsImpostor.BoxImpostor,
+                //     { mass: 1, restitution: 0.9 },
+                //     scene
+                // );
+                camera.lockedTarget = cube;
+
+                // Create a virtual joystick
+                joystick = new BABYLON.VirtualJoystick({
+                    container: canvas,
+                    thumbSize: 30,
+                    // Customize as needed
+                });
+                
+               //level
+               var ground2 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+               ground2.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+                     ground2,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground2.position.z = 12;
+               ground2.position.x = 5;
+               ground2.position.y = -2;
+               ground2.rotation.z = Math.PI/2;
+               
+               const material = new BABYLON.StandardMaterial("boxMaterial", scene);
+            material.diffuseTexture = new BABYLON.Texture("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Paint_Texture.jpg/788px-Paint_Texture.jpg?20160206064400", scene);
+            ground2.material = material;
+            ground.material = material;
+               
+               var ground3 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+
+               ground3.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+
+                     ground3,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground3.position.z = 24;
+               ground3.position.x = -5;
+               ground3.position.y = -2;
+               ground3.rotation.z = Math.PI/2;
+              ground3.material = material;
+  
+
+              var ground4 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+               ground4.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+                     ground4,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground4.position.z = 12 * 3;
+               ground4.position.x = 5;
+               ground4.position.y = -2;
+               ground4.rotation.z = Math.PI/2;
+               ground4.material = material;
+  
+               var ground5 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+
+               ground5.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+
+                     ground5,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground5.position.z = 12 * 4;
+               ground5.position.x = -5;
+               ground5.position.y = -2;
+               ground5.rotation.z = Math.PI/2;
+               ground5.material = material;
+               
+               var ground6 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+               ground6.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+                     ground6,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground6.position.z = 12 * 5;
+               ground6.position.x = 5;
+               ground6.position.y = -2;
+               ground6.rotation.z = Math.PI/2;
+               ground6.material = material;
+               
+               var ground7 = BABYLON.MeshBuilder.CreateBox('ground', { width: 10,depth:10, height: 1 }, scene);
+               ground7.physicsImpostor = new BABYLON.PhysicsImpostor(
+
+                     ground7,
+
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, restitution: 0.9 },
+                    scene
+                 );
+               ground7.position.z = 12 * 6;
+               ground7.position.x = -5;
+               ground7.position.y = -2;
+               ground7.rotation.z = Math.PI/2;
+               ground7.material = material;
+               
+               
+               
+                // Style the virtual joystick
+                
+                return scene;
+            };
+
+            // Initialize engine and scene
+            engine = createDefaultEngine();
+            scene = createScene();
+
+            // Register render loop
+            engine.runRenderLoop(function () {
+               // camera.target = scene.getMeshByName('cube').position.clone();
+                
+
+                scene.onBeforeRenderObservable.add(function () {
+                    if (joystick.pressed) {
+                        var speed = 22 / 7; // Adjust the speed as needed
+                        scene.getMeshByName('cube').physicsImpostor.setLinearVelocity(
+                            new BABYLON.Vector3(joystick.deltaPosition.x * speed, 0, joystick.deltaPosition.y * speed)
+                        );
+                        
+                
+                        
+                    }
+                });
+                        
+               
+                scene.render();
+            });
+
+            window.addEventListener('resize', function () {
+                engine.resize();
+            });
+        });
+    </script>
+</body>
+</html>
