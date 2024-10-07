@@ -83,32 +83,40 @@
       });
 
       // Add camera movement based on joystick input
-      scene.onBeforeRenderObservable.add(() => {
-        if (scene.activeCamera) {
-          if (leftJoystick.pressed) {
-          const speed = 0.01;
-          let direction = new BABYLON.Vector3(
-            leftJoystick.deltaPosition.x * speed,
-            0,
-            leftJoystick.deltaPosition.y * speed
-          );
+scene.onBeforeRenderObservable.add(() => {
+  if (scene.activeCamera) {
+    const speed = 0.1; // Adjust speed as needed
 
-          scene.activeCamera.cameraDirection.addInPlace(direction);
-          }
-          
-          if (rightJoystick.pressed){
-            
-            let rotationSpeed = -0.01;
-          scene.activeCamera.rotation.y -= rightJoystick.deltaPosition.x * rotationSpeed;
-          scene.activeCamera.rotation.x += rightJoystick.deltaPosition.y * rotationSpeed;
+    // Calculate movement based on left joystick
+    if (leftJoystick.pressed) {
+      const direction = new BABYLON.Vector3(
+        leftJoystick.deltaPosition.x,
+        0,
+        leftJoystick.deltaPosition.y
+      );
 
-          // Clamp camera rotation to avoid over-rotation
-          scene.activeCamera.rotation.x = BABYLON.Scalar.Clamp(scene.activeCamera.rotation.x, -Math.PI / 2, Math.PI / 2);
-           
-            
-          }
-        }
-      });
+      // Rotate the direction based on the camera's rotation
+      const cameraRotationY = scene.activeCamera.rotation.y;
+      const rotatedDirection = direction.rotateByQuaternionToRef(
+        BABYLON.Quaternion.FromEulerAngles(0, cameraRotationY, 0),
+        new BABYLON.Vector3()
+      );
+
+      // Apply movement
+      scene.activeCamera.position.addInPlace(rotatedDirection.scale(speed));
+    }
+
+    // Calculate rotation based on right joystick
+    if (rightJoystick.pressed) {
+      const rotationSpeed = -0.01; // Adjust rotation speed as needed
+      scene.activeCamera.rotation.y -= rightJoystick.deltaPosition.x * rotationSpeed;
+      scene.activeCamera.rotation.x += rightJoystick.deltaPosition.y * rotationSpeed ;
+
+      // Clamp camera rotation to avoid over-rotation
+      scene.activeCamera.rotation.x = BABYLON.Scalar.Clamp(scene.activeCamera.rotation.x, -Math.PI / 2, Math.PI / 2);
+    }
+  }
+});
 
       // Run the render loop
       engine.runRenderLoop(function () {
