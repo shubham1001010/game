@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Babylon.js First Person Prototype with Virtual Joystick</title>
+  <style>
+    html, body {
+      overflow: hidden;
+      margin: 0;
+      height: 100%;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Get the canvas element
+      const canvas = document.getElementById('renderCanvas');
+
+      // Create the Babylon.js engine
+      const engine = new BABYLON.Engine(canvas, true);
+
+      // Create the scene
+      const createScene = function () {
+        const scene = new BABYLON.Scene(engine);
+        scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+
+        // Add a camera (UniversalCamera for first-person)
+        const camera = new BABYLON.UniversalCamera("FP_Camera", new BABYLON.Vector3(0, 2.5, -10), scene);
+        camera.attachControl(canvas, true);
+        camera.checkCollisions = true;
+        camera.applyGravity = true;
+
+        // Set up the camera's collision size (ellipsoid is the camera's "hitbox")
+        camera.ellipsoid = new BABYLON.Vector3(0.5, 1.75, 0.5); // Ellipsoid represents a capsule around the camera
+        camera.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0); // Offset to correctly position the ellipsoid
+
+        // Add a light
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+
+        // Add a ground
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 50, height: 50 }, scene);
+        ground.checkCollisions = true; // Enable collisions on ground
+
+        // Add obstacles (boxes)
+        const box1 = BABYLON.MeshBuilder.CreateBox("box1", { size: 2 }, scene);
+        box1.position = new BABYLON.Vector3(0, 1, 5);
+        box1.checkCollisions = true; // Enable collisions on box
+
+        const box2 = BABYLON.MeshBuilder.CreateBox("box2", { size: 2 }, scene);
+        box2.position = new BABYLON.Vector3(2, 1, 10);
+        box2.checkCollisions = true; // Enable collisions on box
+
+        // Enable collision detection for the scene
+        scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
+        scene.collisionsEnabled = true;
+
+        return scene;
+      };
+
+      const scene = createScene();
+
+      // Handle Virtual Joystick using Babylon's built-in VirtualJoystick class
+      const leftJoystick = new BABYLON.VirtualJoystick(true,{
+          container: canvas,
+          thumbSize: 30,  // Adjust thumb size as needed
+      });
+      
+       const rightJoystick = new BABYLON.VirtualJoystick(false,{
+          container: canvas,
+          thumbSize: 30,  // Adjust thumb size as needed
+      });
+
+      // Add camera movement based on joystick input
+      scene.onBeforeRenderObservable.add(() => {
+        if (scene.activeCamera) {
+          if (leftJoystick.pressed) {
+          const speed = 0.01;
+          let direction = new BABYLON.Vector3(
+            leftJoystick.deltaPosition.x * speed,
+            0,
+            leftJoystick.deltaPosition.y * speed
+          );
+
+          scene.activeCamera.cameraDirection.addInPlace(direction);
+          }
+          
+          if (rightJoystick.pressed){
+            
+            let rotationSpeed = -0.01;
+          scene.activeCamera.rotation.y -= rightJoystick.deltaPosition.x * rotationSpeed;
+          scene.activeCamera.rotation.x += rightJoystick.deltaPosition.y * rotationSpeed;
+
+          // Clamp camera rotation to avoid over-rotation
+          scene.activeCamera.rotation.x = BABYLON.Scalar.Clamp(scene.activeCamera.rotation.x, -Math.PI / 2, Math.PI / 2);
+           
+            
+          }
+        }
+      });
+
+      // Run the render loop
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+
+      // Resize the engine if the window is resized
+      window.addEventListener('resize', function () {
+        engine.resize();
+      });
+    });
+  </script>
+</body>
+</html>
