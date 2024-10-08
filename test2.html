@@ -25,44 +25,47 @@
   
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Get the canvas element
       const canvas = document.getElementById('renderCanvas');
-
-      // Create the Babylon.js engine
       const engine = new BABYLON.Engine(canvas, true);
 
-      // Create the scene
       const createScene = function () {
         const scene = new BABYLON.Scene(engine);
         scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
-
-        // Add a camera (UniversalCamera for first-person)
+        
         const camera = new BABYLON.UniversalCamera("FP_Camera", new BABYLON.Vector3(0, 2.5, -10), scene);
         camera.attachControl(canvas, true);
         camera.checkCollisions = true;
         camera.applyGravity = true;
+        camera.ellipsoid = new BABYLON.Vector3(0.5, 1.75, 0.5);
+        camera.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0);
 
-        // Set up the camera's collision size (ellipsoid is the camera's "hitbox")
-        camera.ellipsoid = new BABYLON.Vector3(0.5, 1.75, 0.5); // Ellipsoid represents a capsule around the camera
-        camera.ellipsoidOffset = new BABYLON.Vector3(0, 1, 0); // Offset to correctly position the ellipsoid
+        const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0.3, 10, 5), scene);
+        light1.diffuse = new BABYLON.Color3(0.1, 0.31, 0.5);
+        light1.specular = new BABYLON.Color3(0.1, 0.1, 0.5);
+        light1.intensity = 0.7;
+        
+        const light2 = new BABYLON.HemisphericLight("light2", new BABYLON.Vector3(0.3, 0.6, 0), scene);
+        light2.diffuse = new BABYLON.Color3(1, 1, 1);
+        light2.specular = new BABYLON.Color3(1, 1, 1);
+        light2.intensity = 0.7;
 
-        // Add a light
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
-
-        // Add a ground
         const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 50, height: 50 }, scene);
-        ground.checkCollisions = true; // Enable collisions on ground
+        ground.checkCollisions = true;
 
-        // Add obstacles (boxes)
+        const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+        groundMaterial.diffuseTexture = new BABYLON.Texture("https://www.babylonjs.com/assets/ground.jpg", scene);
+        groundMaterial.diffuseTexture.uScale = 5; 
+        groundMaterial.diffuseTexture.vScale = 5; 
+        ground.material = groundMaterial;
+
         const box1 = BABYLON.MeshBuilder.CreateBox("box1", { size: 2 }, scene);
         box1.position = new BABYLON.Vector3(0, 1, 5);
-        box1.checkCollisions = true; // Enable collisions on box
+        box1.checkCollisions = true;
 
         const box2 = BABYLON.MeshBuilder.CreateBox("box2", { size: 2 }, scene);
         box2.position = new BABYLON.Vector3(2, 1, 10);
-        box2.checkCollisions = true; // Enable collisions on box
+        box2.checkCollisions = true;
 
-        // Enable collision detection for the scene
         scene.gravity = new BABYLON.Vector3(0, -9.81, 0);
         scene.collisionsEnabled = true;
 
@@ -71,59 +74,59 @@
 
       const scene = createScene();
 
-      // Handle Virtual Joystick using Babylon's built-in VirtualJoystick class
-      const leftJoystick = new BABYLON.VirtualJoystick(true,{
+      const leftJoystick = new BABYLON.VirtualJoystick(true, {
           container: canvas,
-          thumbSize: 30,  // Adjust thumb size as needed
+          thumbSize: 30,
       });
       
-       const rightJoystick = new BABYLON.VirtualJoystick(false,{
+      const rightJoystick = new BABYLON.VirtualJoystick(false, {
           container: canvas,
-          thumbSize: 30,  // Adjust thumb size as needed
+          thumbSize: 30,
+          color: 'rgba(255, 255, 255, 0)',
       });
 
-      // Add camera movement based on joystick input
-scene.onBeforeRenderObservable.add(() => {
-  if (scene.activeCamera) {
-    const speed = 0.1; // Adjust speed as needed
+      scene.onBeforeRenderObservable.add(() => {
+        if (scene.activeCamera) {
+            var angleInput = 0;
+            if (leftJoystick.pressed) {
+                const speed = 0.01; // Adjust speed as needed
 
-    // Calculate movement based on left joystick
-    if (leftJoystick.pressed) {
-      const direction = new BABYLON.Vector3(
-        leftJoystick.deltaPosition.x,
-        0,
-        leftJoystick.deltaPosition.y
-      );
+                // Calculate angle based on the camera's rotation
+                angleInput = scene.activeCamera.rotation.y; // Get current rotation in radians
 
-      // Rotate the direction based on the camera's rotation
-      const cameraRotationY = scene.activeCamera.rotation.y;
-      const rotatedDirection = direction.rotateByQuaternionToRef(
-        BABYLON.Quaternion.FromEulerAngles(0, cameraRotationY, 0),
-        new BABYLON.Vector3()
-      );
+                // Calculate movement direction based on the angle input
+                const radians = angleInput; // angleInput is already in radians
+                const x = Math.sin(radians) * leftJoystick.deltaPosition.y * speed;
+                const z = Math.cos(radians) * leftJoystick.deltaPosition.y * speed;
 
-      // Apply movement
-      scene.activeCamera.position.addInPlace(rotatedDirection.scale(speed));
-    }
+                let direction = new BABYLON.Vector3(x,0,z);
 
-    // Calculate rotation based on right joystick
-    if (rightJoystick.pressed) {
-      const rotationSpeed = -0.01; // Adjust rotation speed as needed
-      scene.activeCamera.rotation.y -= rightJoystick.deltaPosition.x * rotationSpeed;
-      scene.activeCamera.rotation.x += rightJoystick.deltaPosition.y * rotationSpeed ;
+            scene.activeCamera.cameraDirection.addInPlace(direction);
 
-      // Clamp camera rotation to avoid over-rotation
-      scene.activeCamera.rotation.x = BABYLON.Scalar.Clamp(scene.activeCamera.rotation.x, -Math.PI / 2, Math.PI / 2);
-    }
-  }
-});
+                // Move the camera
+               // scene.activeCamera.position.x += x;
+            //    scene.activeCamera.position.z += z;
+            }
+            
+            if (rightJoystick.pressed) {
+                let rotationSpeed = -0.02;
+                scene.activeCamera.rotation.y -= rightJoystick.deltaPosition.x * rotationSpeed;
+                scene.activeCamera.rotation.x += rightJoystick.deltaPosition.y * rotationSpeed * 0.05;
 
-      // Run the render loop
+                // Convert rotation to degrees for logging (optional)
+                angleInput = scene.activeCamera.rotation.y;
+                console.log(angleInput);
+
+                // Clamp the camera's rotation to avoid flipping
+                scene.activeCamera.rotation.x = BABYLON.Scalar.Clamp(scene.activeCamera.rotation.x, -Math.PI / 2, Math.PI / 2);
+            }
+        }
+      });
+
       engine.runRenderLoop(function () {
         scene.render();
       });
 
-      // Resize the engine if the window is resized
       window.addEventListener('resize', function () {
         engine.resize();
       });
