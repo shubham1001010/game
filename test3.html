@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>GAME</title>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://assets.babylonjs.com/generated/Assets.js"></script>
+        <script src="https://cdn.babylonjs.com/recast.js"></script>
+        <script src="https://cdn.babylonjs.com/ammo.js"></script>
+        <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+        <script src="https://cdn.babylonjs.com/cannon.js"></script>
+        <script src="https://cdn.babylonjs.com/Oimo.js"></script>
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+            
+            #canvasZone {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+<body>
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var startRenderLoop = function (engine, canvas) {
+            engine.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        }
+
+        var engine = null;
+        var scene = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        var createScene = function () {
+    var scene = new BABYLON.Scene(engine);
+
+    // Lights
+    //var light0 = new BABYLON.DirectionalLight("Omni", new BABYLON.Vector3(-2, -5, 2));
+    var light1 = new BABYLON.HemisphericLight("Omni", new BABYLON.Vector3(12, -10, -200));
+    light1.diffuse = new BABYLON.Color3(0.9,0.8,1);
+    light1.intensity = 0.5 ;
+    var light2 = new BABYLON.HemisphericLight("Omni", new BABYLON.Vector3(-40, -10, 100));
+    light2.diffuse = new BABYLON.Color3(0.9,1,1);
+    light2.intensity = 0.5 ;
+
+    // Need a free camera for collisions
+    var camera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(-18, -8, -15));
+
+    //Ground
+    var ground = BABYLON.CreatePlane("ground", { size: 50.0 });
+    ground.material = new BABYLON.StandardMaterial("groundMat");
+    ground.material.diffuseTexture = new BABYLON.Texture("https://shubham1001010.github.io/Shrek_game/grass.jpeg");
+            ground.material.diffuseTexture.uScale = 20; 
+        ground.material.diffuseTexture.vScale = 20; 
+    ground.material.diffuseColor = new BABYLON.Color3(0.7, 1.5, 0.7);
+     ground.material.backFaceCulling = false;
+    ground.position = new BABYLON.Vector3(0, -10, 0);
+    ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+    
+    
+
+    //Simple crate
+    // Create the cube
+    
+    const cube = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 45 , depth : 0.25}, scene);
+    cube.position = new BABYLON.Vector3(0,-8,22.5);
+    // Apply the texture to the cube
+    const cubeMaterial = new BABYLON.StandardMaterial("cubeMaterial", scene);
+    cubeMaterial.diffuseTexture = new BABYLON.Texture("https://shubham1001010.github.io/Shrek_game/wood1.jpeg", scene);
+    cubeMaterial.diffuseTexture.uScale = 1.5; 
+    cubeMaterial.backFaceCulling = false;
+    cubeMaterial.diffuseTexture.vScale = 1.5; 
+    cube.material = cubeMaterial;
+    
+    const cubeMaterial1 = new BABYLON.StandardMaterial("cubeMaterial", scene);
+    cubeMaterial1.diffuseTexture = new BABYLON.Texture("https://shubham1001010.github.io/Shrek_game/marble.jpeg", scene);
+    cubeMaterial1.diffuseTexture.uScale = 2; 
+    cubeMaterial1.backFaceCulling = false;
+    cubeMaterial1.diffuseTexture.vScale = 2; 
+    
+    const cubeMaterial2 = new BABYLON.StandardMaterial("cubeMaterial", scene);
+    cubeMaterial2.diffuseTexture = new BABYLON.Texture("https://shubham1001010.github.io/Shrek_game/ceiling.jpg", scene);
+    cubeMaterial2.diffuseTexture.uScale = 4; 
+    cubeMaterial2.backFaceCulling = false;
+    cubeMaterial2.diffuseTexture.vScale = 4; 
+    
+    const cubeMaterial3 = new BABYLON.StandardMaterial("cubeMaterial", scene);
+    cubeMaterial3.diffuseTexture = new BABYLON.Texture("https://shubham1001010.github.io/Shrek_game/wall.jpg", scene);
+    cubeMaterial3.diffuseTexture.uScale = 1; 
+    cubeMaterial3.backFaceCulling = false;
+    cubeMaterial3.diffuseTexture.vScale = 1; 
+    // Enable collision for the cube
+    cube.checkCollisions = true;
+    
+    const cubeMaterial4 = new BABYLON.StandardMaterial("cubeMaterial", scene);
+    
+            
+            BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "shrekt.glb", scene, function (meshes, particleSystems, skeletons, animationGroups) {
+    // Position the imported mesh
+    var importedMesh = meshes[0];
+    importedMesh.rotation = new BABYLON.Vector3(0,0,0);
+    // Assuming the first mesh is the one you want
+    importedMesh.position = new BABYLON.Vector3(-20, -10, -6.5);
+    meshes[0].diffuse = new BABYLON.Vector3(1,0,0);
+
+    // Play the specific animation group (4th animation group)
+    if (animationGroups.length > 4) {
+        const animationGroup = animationGroups[4]; // Index 3 for the 4th group (0-based index)
+        animationGroup.start(true); // true to loop
+    }
+    var redLight = new BABYLON.DirectionalLight("redLight", new BABYLON.Vector3(0, 10, 0), new BABYLON.Vector3(0, -1, 0), Math.PI / 2, 10, scene);
+redLight.diffuse = new BABYLON.Color3(1, 0, 0);
+redLight.specular = new BABYLON.Color3(1, 0, 0);
+redLight.parent = importedMesh;
+redLight.intensity = 20;
+redLight.includedOnlyMeshes.push(meshes[0]);
+
+});
+
+
+      // Add linear fog to the scene
+// Add exponential squared fog to the scene (density increases with distance)
+scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+scene.fogDensity = 0.05; // Adjust for the exponential growth rate of the fog density
+scene.fogColor = new BABYLON.Color3(0.9, 0.9, 0.85); // Fog color (light grayish)
+
+      //
+    
+    const cube1 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 0.25 , depth : 45}, scene);
+    cube1.position = new BABYLON.Vector3(22.5,-8,0);
+    cube1.checkCollisions = true ;
+    cube1.material = cubeMaterial;
+    
+    const cube2 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 0.25 , depth : 45}, scene);
+    cube2.position = new BABYLON.Vector3(-22.5,-8,0);
+    cube2.checkCollisions = true ;
+    cube2.material = cubeMaterial;
+    
+    const cube3 = BABYLON.MeshBuilder.CreateBox("cube", {height: 0.1 , width : 45 , depth : 45}, scene);
+    cube3.position = new BABYLON.Vector3(0,-5.95,0);
+    cube3.checkCollisions = true ;
+    cube3.material = cubeMaterial2;
+    
+     const cube4 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 10 , depth : 0.25}, scene);
+    cube4.position = new BABYLON.Vector3(-17.50,-8,16.5);
+    cube4.checkCollisions = true ;
+    cube4.material = cubeMaterial3;
+    
+    const cube5 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 45 , depth : 0.25}, scene);
+    cube5.position = new BABYLON.Vector3(0,-8,-22.5);
+    cube5.checkCollisions = true ;
+    cube5.material = cubeMaterial;
+    
+    const cube6 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 10 , depth : 0.25}, scene);
+    cube6.position = new BABYLON.Vector3(-17.50,-8,10.5);
+    cube6.checkCollisions = true ;
+    cube6.material = cubeMaterial3;
+    
+    const cube7 = BABYLON.MeshBuilder.CreateBox("cube", {height: 1 , width : 0.25 , depth : 12.5}, scene);
+    cube7.position = new BABYLON.Vector3(-12.5,-6.5,16.5);
+    cube7.checkCollisions = true ;
+    cube7.material = cubeMaterial;
+    
+    const cube8 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 15 , depth : 0.25}, scene);
+    cube8.position = new BABYLON.Vector3(-17.50,-8,-15.5);
+    cube8.checkCollisions = true ;
+    cube8.material = cubeMaterial3;
+    
+    const cube9 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 15 , depth : 0.25}, scene);
+    cube9.position = new BABYLON.Vector3(-17.50,-8,-5.5);
+    cube9.checkCollisions = true ;
+    cube9.material = cubeMaterial3;
+    
+    const cube10 = BABYLON.MeshBuilder.CreateBox("cube", {height: 1 , width : 0.25 , depth : 17.5}, scene);
+    cube10.position = new BABYLON.Vector3(-10,-6.5,-14);
+    cube10.checkCollisions = true ;
+    cube10.material = cubeMaterial;
+    
+    const cube11 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 15 , depth : 0.25}, scene);
+    cube11.position = new BABYLON.Vector3(2,-8,-15.5);
+    cube11.checkCollisions = true ;
+    cube11.material = cubeMaterial;
+    
+    const cube12 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 0.25 , depth : 7.5}, scene);
+    cube12.position = new BABYLON.Vector3(9.5,-8,-18.75);
+    cube12.checkCollisions = true ;
+    cube12.material = cubeMaterial;
+    
+    const cube15 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 0.25 , depth : 6}, scene);
+    cube15.position = new BABYLON.Vector3(-13,-8,13.5);
+    cube15.checkCollisions = true ;
+    cube15.material = cubeMaterial4;
+    cube15.material.alpha = 0;
+    
+    const cube13 = BABYLON.MeshBuilder.CreateBox("cube", {height: 4 , width : 0.25 , depth : 38}, scene);
+    cube13.position = new BABYLON.Vector3(-5.5,-8,3.5);
+    cube13.checkCollisions = true ;
+    cube13.material = cubeMaterial;
+    
+    BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "old_bed.glb", scene, function (meshes) {
+        // Set the position of the imported model
+        meshes.forEach(function (mesh) {
+            mesh.position = new BABYLON.Vector3(-21, -11,22);
+            mesh.scaling = new BABYLON.Vector3(1.5,1.5,1.5);
+            mesh.checkCollisions = true ;
+        });
+    });
+    
+        BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "old_bed.glb", scene, function (meshes) {
+        // Set the position of the imported model
+        meshes.forEach(function (mesh) {
+            mesh.position = new BABYLON.Vector3(-21, -11,16);
+            mesh.scaling = new BABYLON.Vector3(1.5,1.5,1.5);
+            mesh.checkCollisions = true ;
+        });
+    });
+    
+    const cube14 = BABYLON.MeshBuilder.CreateBox("cube", {height: 0.1 , width : 45 , depth : 45}, scene);
+    cube14.position = new BABYLON.Vector3(0,-10.048,0);
+    cube14.checkCollisions = true ;
+    cube14.material = cubeMaterial1;
+    
+    BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "toilet.glb", scene, function (meshes, particleSystems, skeletons, animationGroups) {
+                
+                // Set the position of the first mesh (assuming the entire model is part of this mesh)
+                if (meshes.length > 0) {
+                    meshes[0].position = new BABYLON.Vector3(-20.5, -10, -20);
+                    meshes[0].rotation = new BABYLON.Vector3(0,0,0);
+                    meshes[0].scaling = new BABYLON.Vector3(0.037,0.037,0.037);
+                    meshes[0].checkCollisions = true;// Set position to (-21, -8, 21)
+                }
+                
+                meshes.forEach(function (mesh) {
+                  mesh.checkCollisions = true;
+                });
+                
+
+            });
+            
+          
+            
+            
+            
+            BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "desk.glb", scene, function (meshes) {    
+        // Set the position of the imported model
+        meshes.forEach(function (mesh) {
+            mesh.position = new BABYLON.Vector3(-20, -9.5,-7.5);
+            mesh.scaling = new BABYLON.Vector3(4,4,4);
+            mesh.checkCollisions = true ;
+        });
+    });
+        
+        BABYLON.SceneLoader.ImportMesh("", "https://shubham1001010.github.io/Shrek_game/", "fan.glb", scene, function (newMeshes, particleSystems, skeletons, animationGroups) {
+
+               // var hero = newMeshes[0];!
+               animationGroups[0].play;
+              newMeshes[0].position = new BABYLON.Vector3(-18, -6, -9);
+              newMeshes[0].scaling = new BABYLON.Vector3(2,2,2);
+              newMeshes[0].checkCollisions = true;
+                
+            });
+        
+    
+    //Set gravity for the scene (G force like, on Y-axis)
+    scene.gravity = new BABYLON.Vector3(0, -9.81 / 60, 0);
+
+    // Enable Collisions
+    scene.collisionsEnabled = true;
+
+    //Then apply collisions and gravity to the active camera
+    camera.checkCollisions = true;
+    camera.applyGravity = true;
+
+    //Set the ellipsoid around the camera (e.g. your player's size)
+    camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
+
+    //finally, say which mesh will be collisionable
+    ground.checkCollisions = true;
+    //box.checkCollisions = true;
+
+    // Add our custom Joystick+Swipe input
+    camera.inputs.clear()
+    camera.inputs.add(new FreeCameraTouchVirtualJoystickInput())
+    camera.attachControl(canvas, true);
+    camera.speed = 2
+    BABYLON.Engine.CollisionsEpsilon = 0.0001; // acts as a deadzone for joystick
+    camera.inertia = 0.8;
+    var cameraPosition = camera.position;
+    var cameraX = cameraPosition.x;
+    var cameraZ = cameraPosition.z;
+    
+    var days = 1;
+    var position1 = 0;
+   var day1e = 0 ;
+   var dumpe = 0;
+   var int1=0;
+    
+    var gui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+var textButton = BABYLON.GUI.Button.CreateSimpleButton("textButton", "");
+            textButton.color = "white";
+            textButton.fontSize = 24;
+            textButton.background = "rgba(0, 0, 0, 0)";  // Transparent black background
+            textButton.alpha = 0;  // Initially invisible
+            textButton.width = "60%";  // Make it span the full width of the screen
+            textButton.height = "14%";  // Height of the button
+            textButton.paddingBottom = "10px";
+            textButton.thickness = 0;// Add some padding from the bottom
+            textButton.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+            textButton.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            textButton.top = "45%";
+            textButton.left = "0%";
+            gui.addControl(textButton);
+
+            // Create the clickable button to change text
+            var jumpButton2 = BABYLON.GUI.Button.CreateSimpleButton("clickButton", "Interact");
+            jumpButton2.width = "100px";
+            jumpButton2.height = "100px";
+            jumpButton2.color = "grey";          // Border color
+            jumpButton2.background = "white";    // Background color
+            jumpButton2.cornerRadius = 100;      // Make the button circular
+            jumpButton2.thickness = 4;           // Border thicknes
+            jumpButton2.textBlock.color = "grey";  // Text color
+            jumpButton2.textBlock.fontFamily = "monospace";  // Monospace font
+            jumpButton2.textBlock.fontWeight = "bold";
+            jumpButton2.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            jumpButton2.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            jumpButton2.left = "-5%";   // 10px from right
+            jumpButton2.top = "-40%"; 
+            gui.addControl(jumpButton2);
+
+            // Click states
+            var clickCount = 0;
+            jumpButton2.onPointerUpObservable.add(function () {
+                
+
+                // First click: Show the first text in green
+                if(days === 1){
+                  
+                if (position1 === 1){
+                  console.log("mission is successful and position is derived ");
+               
+               clickCount++;
+               console.log(clickCount);
+                
+                if (clickCount === 1) {
+                    textButton.textBlock.text = "YOU : I WANT A HOTEL ROOM";
+                   // textButton.color = "green";
+                    textButton.alpha = 1;  // Make button visible
+                } 
+                // Second click: Change text to red
+                else if (clickCount === 2) {
+                    textButton.textBlock.text = "SHREK : SURE THERE IS A ROOM LAST IN LOBBY YOU CAN TAKE THAT";
+                    //textButton.color = "red";
+                } 
+                // Third click: Change text back to green
+                else if (clickCount === 3) {
+                    textButton.textBlock.text = "YOU : THANK YOU I WILL LIVE THERE FOR FIVE DAYS";
+                   // textButton.color = "green";
+                } 
+                // Fourth click: Hide the button again
+                else if (clickCount === 4){
+                    //textButton.alpha = 0;  // Make button invisible
+                  //  clickCount = 4;  // Reset click count
+                    textButton.textBlock.text = "SHREK : I SAID GO TO YOUR ROOM OR I HAVE TO DO SOMETHING.";
+                    int1 = 1;
+                    //textButton.color = "red";
+                }
+                else if (clickCount === 5){
+                    textButton.alpha = 0;  // Make button invisible
+                    clickCount = 6;  // Reset click count
+                }
+                }
+                }
+                else if(days === 2){
+                  console.log("stage1");
+                  if (position1 === 1){
+                    console.log("stage2");
+                    clickCount++;
+                    if (clickCount === 1) {
+                      console.log("stage3");
+                    textButton.textBlock.text = "YOU : HI SHREK";
+                   // textButton.color = "green";
+                    textButton.alpha = 1;  // Make button visible
+                } 
+                // Second click: Change text to red
+                else if (clickCount === 2) {
+                    textButton.textBlock.text = "SHREK : OOH YOU MAD BOY, YOU DUMP IN MY TOILET AND MADE IT DIRTY. GO AND CLEAN IT.";
+                    //textButton.color = "red";
+                } 
+                // Third click: Change text back to green
+                else if (clickCount === 3) {
+                    textButton.textBlock.text = "YOU : IT IS NOT MY RESPONSIBILITY ";
+                   // textButton.color = "green";
+                } 
+                // Fourth click: Hide the button again
+                else if (clickCount === 4){
+                    //textButton.alpha = 0;  // Make button invisible
+                  //  clickCount = 4;  // Reset click count
+                    textButton.textBlock.text = "SHREK : I SAID GO AND DO IT.";
+                    //textButton.color = "red";
+                }
+                else if (clickCount === 5){
+                  textButton.textBlock.text = "GO TO TOILET AND TAKE BROOM AND CLEAN IT";
+                    clickCount = 6;  // Reset click count
+                }
+                    
+                    
+                  }
+                }
+              
+            });
+            
+            
+            
+    var gui2 = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+
+
+            var jumpButton = BABYLON.GUI.Button.CreateSimpleButton("jumpButton", "Jump");
+            jumpButton.width = "100px";
+            jumpButton.height = "100px";
+            jumpButton.color = "grey";          // Border color
+            jumpButton.background = "white";    // Background color
+            jumpButton.cornerRadius = 100;      // Make the button circular
+            jumpButton.thickness = 4;           // Border thicknes
+            jumpButton.textBlock.color = "grey";  // Text color
+            jumpButton.textBlock.fontFamily = "monospace";  // Monospace font
+            jumpButton.textBlock.fontWeight = "bold";
+            jumpButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            jumpButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            jumpButton.left = "-5%";   // 10px from right
+            jumpButton.top = "-20%";    // 10px from bottom
+
+            gui2.addControl(jumpButton);
+            
+           
+            
+            var isJumping = false;
+            var jumpHeight = 1.5;
+            var jumpSpeed = 0.08;
+            var gravity = -6.5;
+            var velocityY = 0;
+
+            jumpButton.onPointerDownObservable.add(function() {
+                if (!isJumping) {
+                    isJumping = true;
+                    velocityY = jumpHeight;
+                }
+            });
+            
+           var jumpButton3 = BABYLON.GUI.Button.CreateSimpleButton("jumpButton", "sleep");
+
+            jumpButton3.width = "100px";
+
+            jumpButton3.height = "100px";
+            jumpButton3.color = "grey";          // Border color
+            jumpButton3.background = "white";    // Background color
+            jumpButton3.cornerRadius = 100;      // Make the button circular
+            jumpButton3.thickness = 4;           // Border thicknes
+            jumpButton3.textBlock.color = "grey";  // Text color
+            jumpButton3.textBlock.fontFamily = "monospace";  // Monospace font
+            jumpButton3.textBlock.fontWeight = "bold";
+            jumpButton3.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            jumpButton3.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+            jumpButton3.left = "-17%";   // 10px from right
+            jumpButton3.top = "-27%";    // 10px from bottom
+
+            gui2.addControl(jumpButton3);
+            
+            jumpButton3.onPointerUpObservable.add(function () {
+              if (days=1){
+              if (position1===2){
+                if (int1 === 1){
+                if (day1e === 1){
+            var jumpButton4 = BABYLON.GUI.Button.CreateSimpleButton("clickButton", "NIGHT 2");
+            jumpButton4.width = "100%";
+            jumpButton4.height = "100%";        // Border color
+            jumpButton4.background = "black";    // Background color 
+            jumpButton4.textBlock.color = "white";  // Text color
+            jumpButton4.textBlock.fontFamily = "monospace";  // Monospace font
+            jumpButton4.textBlock.fontWeight = "bold";
+            jumpButton4.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            jumpButton4.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+            gui.addControl(jumpButton4);
+            days= 2;
+            clickCount = 0;
+            console.log(days, clickCount);
+            
+            function executeAfterDelay8() {
+            console.log("This function is executed after 1500ms!");
+            jumpButton4.alpha = 0;
+            gui.removeControl(jumpButton4);
+            camera.position.x = -18;
+            camera.position.z =-14;
+            }
+            // Execute the function after 1500 milliseconds (1.5 seconds)
+            setTimeout(executeAfterDelay8, 1500);
+                }
+                else if(day1e===0){
+                  textButton.textBlock.text = "I NEED TO DUMP BEFORE I SLEEP";
+                  dumpe = 1;
+                  textButton.alpha = 1;
+                }
+                
+                else{
+                  console.log(day1e);
+                }
+                }
+                
+                else if (int1=== 0){
+                  camera.position.x = -12;
+                    camera.position.z =20;
+                    textButton.textBlock.text = "THIS ROOM IS NOT YOURS . TALK TO SHREK TO BOOK IT.";
+                    textButton.alpha = 1;
+                }
+                
+              }
+                  else  if (position1=== 3){
+                  if ( dumpe ===1){
+                    camera.position.x = -14;
+                    camera.position.z =-18;
+                    day1e = 1;
+                    textButton.textBlock.text = "AAH FEELING BETTER!";
+                    
+                    function txtap1(){
+                    textButton.alpha = 0;
+                    }
+                    setTimeout(txtap1,1500,1);
+                  }
+                  }
+              }
+              
+            });
+            
+            scene.onBeforeRenderObservable.add(function() {
+                if (isJumping) {
+                    camera.position.y += velocityY;
+                    velocityY += gravity * jumpSpeed;
+
+                    if (camera.position.y <= -8) { // Reset position when landing
+                        camera.position.y = -8;
+                        velocityY = 0;
+                        isJumping = false;
+                    }
+                }
+            });
+            
+            function positioncheck(){
+              
+              if ((camera.position.x >= -23 && camera.position.x <= -13) && (camera.position.z >= -14 && camera.position.z <= -4)) {
+            position1 = 1;
+            jumpButton3.textBlock.text = "----";
+            //console.log(camera.position.x,camera.position.z, position1);
+          //  console.log("area reached");
+              }
+              else if ((camera.position.x >= -27 && camera.position.x <= -15) && (camera.position.z >= 16 && camera.position.z <= 28)){
+                position1 = 2 ;
+                jumpButton3.textBlock.text = "SLEEP";
+              }
+              else if ((camera.position.x >= -25 && camera.position.x <= -15) && (camera.position.z >= -25 && camera.position.z <= -16)){
+                position1 = 3 ;
+                jumpButton3.textBlock.text = "DUMP";
+              }
+              else {
+                position1 =0;
+                jumpButton3.textBlock.text = "----";
+               // console.log(camera.position.x,camera.position.z);
+              }
+            }
+            
+            setInterval(positioncheck, 100);
+
+
+
+            // Function for jump
+
+    return scene;
+}
+
+
+class FreeCameraTouchVirtualJoystickInput extends BABYLON.BaseCameraPointersInput {
+    SWIPE_SENSIBILITY = 0.5;
+    JOYSTICK_COLOR = "LightGray";
+    JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE = 0.5;
+    JOYSTICK_CIRCLE_SIZE_VERTICAL_SCREEN_SHARE = 0.1;
+    JOYSTICK_PUCK_SIZE_VERTICAL_SCREEN_SHARE = 0.05;
+    JOYSTICK_OUTER_CIRCLE_THICKNESS_RATIO = 0.005;
+    JOYSTICK_INNER_CIRCLE_THICKNESS_RATIO = 0.02;
+    JOYSTICK_PUCK_THICKNESS_RATIO = 0.01;
+
+    camera;
+    joystickDelta = BABYLON.Vector2.Zero();
+    screenSize;
+    ui;
+    joystickPointerId;
+    joystickButtonDownPos;
+    joystickButtonDownPosOffset;
+    joystickContainer;
+    joystickOuterCirce;
+    joystickInnerCircle;
+    joystickPuck;
+    joystickCircleRadius;
+    joystickPuckRadius;
+
+    getClassName = () => this.constructor.name;
+
+    getSimpleName = () => "joystick"
+
+    attachControl(noPreventDefault) {
+        super.attachControl(noPreventDefault);
+        this.screenSize = FreeCameraTouchVirtualJoystickInput.getScreenSize();
+        this.ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        this.prepareImages(this.screenSize.y);
+        BABYLON.EngineStore.LastCreatedEngine.onResizeObservable.add(this.resize);
+    }
+
+    prepareImages() {
+        this.joystickCircleRadius = this.screenSize.y * this.JOYSTICK_CIRCLE_SIZE_VERTICAL_SCREEN_SHARE;
+        this.joystickPuckRadius = this.screenSize.y * this.JOYSTICK_PUCK_SIZE_VERTICAL_SCREEN_SHARE;
+
+        this.joystickContainer = new BABYLON.GUI.Container("virtual_joystick");
+        let containerSize = this.joystickCircleRadius * 2 + this.joystickPuckRadius * 2 + 1;
+        this.joystickContainer.widthInPixels = containerSize;
+        this.joystickContainer.heightInPixels = containerSize;
+        this.joystickContainer.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        this.joystickContainer.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+        this.joystickOuterCirce = this.prepareJoystickCircle(
+            this.joystickCircleRadius,
+            containerSize * this.JOYSTICK_OUTER_CIRCLE_THICKNESS_RATIO,
+        );
+        this.joystickInnerCircle = this.prepareJoystickCircle(
+            this.joystickPuckRadius,
+            containerSize * this.JOYSTICK_INNER_CIRCLE_THICKNESS_RATIO,
+        );
+        this.joystickPuck = this.prepareJoystickCircle(
+            this.joystickPuckRadius,
+            containerSize * this.JOYSTICK_PUCK_THICKNESS_RATIO,
+        );
+
+        this.joystickContainer.addControl(this.joystickOuterCirce);
+        this.joystickContainer.addControl(this.joystickInnerCircle);
+        this.joystickContainer.addControl(this.joystickPuck);
+        this.joystickContainer.isVisible = false;
+        this.ui.addControl(this.joystickContainer);
+    }
+
+    prepareJoystickCircle(radius, thickness) {
+        let circle = new BABYLON.GUI.Ellipse();
+        circle.widthInPixels = radius * 2;
+        circle.heightInPixels = radius * 2;
+        circle.thickness = thickness;
+        circle.color = this.JOYSTICK_COLOR;
+        circle.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        circle.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+        return circle;
+    }
+
+    detachControl() {
+        this.disposeImages();
+        this.ui.dispose();
+        BABYLON.EngineStore.LastCreatedEngine.onResizeObservable.removeCallback(this.resize);
+        super.detachControl();
+    }
+
+    disposeImages() {
+        this.joystickContainer.dispose()
+        this.joystickInnerCircle.dispose();
+        this.joystickOuterCirce.dispose();
+        this.joystickPuck.dispose();
+    }
+
+    resize = () => {
+        this.screenSize = FreeCameraTouchVirtualJoystickInput.getScreenSize();
+        this.disposeImages();
+        this.prepareImages();
+    };
+
+    static getScreenSize() {
+        let engine = BABYLON.EngineStore.LastCreatedEngine;
+        return new BABYLON.Vector2(engine.getRenderWidth(), engine.getRenderHeight());
+    }
+
+
+    checkInputs() {
+        let joystickMoveVector = new BABYLON.Vector3(this.joystickDelta.x, 0, -this.joystickDelta.y);
+        joystickMoveVector.scaleInPlace(BABYLON.EngineStore.LastCreatedEngine.getDeltaTime() / 3000);
+        
+        
+var movement = joystickMoveVector.length();
+    if (movement > 0) {
+        // Add a slight shake to the camera position
+        let shakeAmount = 0.05; // Adjust the intensity of the shake
+        let shakeX = Math.random() * shakeAmount - shakeAmount / 2;
+        let shakeY = Math.random() * shakeAmount - shakeAmount / 2;
+
+        this.camera.position.addInPlace(new BABYLON.Vector3(shakeX, shakeY, 0));
+        
+
+
+       // walkingSound.play();
+    }
+    
+    else if (movement===0){
+     // walkingSound.stop();
+      
+    }
+        this.camera.cameraDirection.addInPlace(
+            BABYLON.Vector3.TransformCoordinates(joystickMoveVector, BABYLON.Matrix.RotationY(this.camera.rotation.y)),
+        );
+
+    }
+
+    onTouch(point, offsetX, offsetY) {
+        if (point.pointerId === this.joystickPointerId) {
+            // point refer to global inner window canvas, we need to convert it to local render canvas
+            this.onTouchJoystick(
+                new BABYLON.Vector2(point.x, point.y).subtractInPlace(this.joystickButtonDownPosOffset),
+            );
+            
+        } else {
+            this.onTouchSwipe(new BABYLON.Vector2(offsetX, offsetY));
+        }
+    }
+    
+    onTouch(point, offsetX, offsetY) {
+    if (point.pointerId === this.joystickPointerId || point.x < this.screenSize.x * this.JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE) {
+        // Joystick movement
+        this.onTouchJoystick(new BABYLON.Vector2(point.x, point.y).subtractInPlace(this.joystickButtonDownPosOffset));
+    } else {
+        // Swipe to rotate
+        this.onTouchSwipe(new BABYLON.Vector2(offsetX, offsetY));
+    }
+}
+
+
+    onTouchJoystick(touchPoint) {
+        const joystickVector = touchPoint.subtract(this.joystickButtonDownPos);
+        if (joystickVector.length() > this.joystickCircleRadius)
+            joystickVector.scaleInPlace(this.joystickCircleRadius / joystickVector.length());
+        this.joystickPuck.left = joystickVector.x;
+        this.joystickPuck.top = joystickVector.y;
+
+        this.joystickDelta = joystickVector.scaleInPlace(this.camera.speed / this.joystickCircleRadius);
+    }
+
+    onTouchSwipe(touchOffset) {
+        let directionAdjust = 1;
+        if (this.camera.getScene().useRightHandedSystem) directionAdjust *= -1;
+        if (this.camera.parent && this.camera.parent._getWorldMatrixDeterminant() < 0)
+            directionAdjust *= -1;
+
+        this.camera.cameraRotation.y +=
+            ((directionAdjust * touchOffset.x) / this.screenSize.x) * this.SWIPE_SENSIBILITY;
+        this.camera.cameraRotation.x += (touchOffset.y / this.screenSize.x) * this.SWIPE_SENSIBILITY;
+    }
+
+    onButtonDown(evt) {
+        if (evt.offsetX < this.screenSize.x * this.JOYSTICK_TOUCH_AREA_HORIZONTAL_SCREEN_SHARE)
+            this.onButtonDownJoystick(evt);
+    }
+
+    onButtonDownJoystick(evt) {
+        let point = new BABYLON.Vector2(evt.offsetX, evt.offsetY);
+        this.joystickPointerId = evt.pointerId;
+        this.joystickButtonDownPos = point;
+        this.joystickButtonDownPosOffset = new BABYLON.Vector2(evt.clientX - point.x, evt.clientY - point.y);
+        this.joystickContainer.left = point.x - this.joystickContainer.widthInPixels / 2;
+        this.joystickContainer.top = point.y - this.joystickContainer.heightInPixels / 2;
+        this.joystickContainer.isVisible = true;
+    }
+
+    onButtonUp(evt) {
+        if (evt.pointerId === this.joystickPointerId) this.onButtonUpJoystick();
+    }
+
+    onButtonUpJoystick() {
+        this.joystickPointerId = null;
+        this.joystickDelta.scaleInPlace(0);
+        this.joystickContainer.isVisible = false;
+    }
+    
+}
+
+
+
+                window.initFunction = async function() {
+                    
+                    
+                    
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+    <script src="/new.js"></script>
+</body>
+</html>
